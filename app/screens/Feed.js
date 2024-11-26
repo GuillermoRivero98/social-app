@@ -5,14 +5,15 @@ import AuthContext from "../context/AuthContext";
 const Feed = () => {
   const { user } = useContext(AuthContext);
   const [posts, setPosts] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchFeed = async () => {
       try {
         const data = await getFeed(user.token);
         setPosts(data);
-      } catch (error) {
-        alert(error.message);
+      } catch (err) {
+        setError("No se pudo cargar el feed.");
       }
     };
     fetchFeed();
@@ -23,21 +24,33 @@ const Feed = () => {
       await likePost(postId, user.token);
       setPosts((prev) =>
         prev.map((post) =>
-          post._id === postId ? { ...post, likes: post.likes + 1 } : post
+          post._id === postId
+            ? { ...post, likes: post.likes.includes(user._id) 
+                  ? post.likes.filter((id) => id !== user._id)
+                  : [...post.likes, user._id] 
+              }
+            : post
         )
       );
-    } catch (error) {
-      alert(error.message);
+    } catch (err) {
+      setError("No se pudo registrar el like.");
     }
   };
 
   return (
     <div>
+      {error && <p style={{ color: "red" }}>{error}</p>}
       {posts.map((post) => (
         <div key={post._id}>
-          <img src={post.imageUrl} alt={post.caption} />
+          <img
+            src={`http://localhost:3001/${post.imageUrl}`}
+            alt={post.caption}
+            style={{ maxWidth: "100%", height: "auto" }}
+          />
           <p>{post.caption}</p>
-          <button onClick={() => handleLike(post._id)}>❤️ {post.likes}</button>
+          <button onClick={() => handleLike(post._id)}>
+            ❤️ {post.likes.length}
+          </button>
         </div>
       ))}
     </div>
