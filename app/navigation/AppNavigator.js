@@ -1,9 +1,9 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
-import FeedScreen from "../screens/FeedScreen";
+import FeedScreen from "../screens/Feed";
 import UploadScreen from "../screens/UploadScreen";
-import ProfileScreen from "../screens/ProfileScreen";
+import ProfileScreen from "../screens/Profile.js";
 
 const Tab = createBottomTabNavigator();
 
