@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
-import AppNavigator from "./app/navigation/AppNavigator"; // Ruta corregida
-import { AuthProvider } from "./app/context/AuthContext"; // Ruta para el AuthContext
-import { getToken } from "./app/services/authService"; // Ruta del servicio de autenticación
+import AppNavigator from "./navigation/AppNavigator"; // Ruta corregida
+import { AuthProvider } from "./context/AuthContext"; // Ruta corregida para AuthContext
+import { getToken } from "./services/authService"; // Ruta corregida para authService
 
 const App = () => {
   const [loading, setLoading] = useState(true);
