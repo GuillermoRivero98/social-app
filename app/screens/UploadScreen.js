@@ -7,20 +7,27 @@ import {
   TextInput,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from "react-native";
-import { launchCamera, launchImageLibrary } from "@react-native-image-picker/image-picker";
+import { launchImageLibrary } from "@react-native-image-picker/image-picker";
 import { uploadImage } from "../services/uploadService";
 import AuthContext from "../context/AuthContext";
 
 const UploadScreen = () => {
-  const { user } = useContext(AuthContext); // Obtiene el token del usuario
+  const { user } = useContext(AuthContext);
   const [image, setImage] = useState(null);
   const [caption, setCaption] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSelectImage = () => {
     launchImageLibrary({ mediaType: "photo" }, (response) => {
       if (!response.didCancel && response.assets) {
-        setImage(response.assets[0]); // Almacena la imagen seleccionada
+        const selectedImage = response.assets[0];
+        if (selectedImage.type.startsWith("image/")) {
+          setImage(selectedImage);
+        } else {
+          Alert.alert("Error", "Por favor selecciona un archivo de imagen válido.");
+        }
       }
     });
   };
@@ -31,21 +38,24 @@ const UploadScreen = () => {
       return;
     }
 
+    setLoading(true);
     const formData = new FormData();
     formData.append("image", {
       uri: image.uri,
-      name: image.fileName,
+      name: image.fileName || `photo_${Date.now()}.jpg`, // Uso seguro en caso de que falte `fileName`.
       type: image.type,
     });
     formData.append("caption", caption);
 
     try {
-      const data = await uploadImage(formData, user.token); // Llama al servicio de subida
+      await uploadImage(formData, user.token); // Llama al servicio de subida
       Alert.alert("Éxito", "Imagen subida correctamente");
       setImage(null);
       setCaption("");
     } catch (error) {
-      Alert.alert("Error", error.message);
+      Alert.alert("Error", error.message || "No se pudo subir la imagen.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,10 +63,7 @@ const UploadScreen = () => {
     <View style={styles.container}>
       <Button title="Seleccionar Imagen" onPress={handleSelectImage} />
       {image && (
-        <Image
-          source={{ uri: image.uri }}
-          style={styles.imagePreview}
-        />
+        <Image source={{ uri: image.uri }} style={styles.imagePreview} />
       )}
       <TextInput
         style={styles.input}
@@ -64,7 +71,11 @@ const UploadScreen = () => {
         value={caption}
         onChangeText={setCaption}
       />
-      <Button title="Subir Imagen" onPress={handleUpload} />
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <Button title="Subir Imagen" onPress={handleUpload} />
+      )}
     </View>
   );
 };
